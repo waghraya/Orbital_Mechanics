@@ -1,7 +1,7 @@
 import numpy as np
 
 """
-    Inputes:
+    Inputs:
         -State pos,vel,grav_param
         -In ECI frame
     Outputs:
