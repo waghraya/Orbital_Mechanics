@@ -4,11 +4,81 @@ Created on Sun Jun 22 14:20:25 2025
 
 @author: waghr
 """
-
+import numpy as np
 class Simulation:
-    def __init__(self, sim_type):
+    def __init__(self, sat_name, sim_type):
         self.sim_type = sim_type
-    def getSimType(self):
-        return self.sim_type
+        self.sat_name = sat_name
     def run(self):
         raise NotImplementedError("Subclasses must implement this method.")
+
+    @staticmethod
+    def RV2OE(pos, vel, grav_param):
+        norm_pos = np.linalg.norm(pos)
+        norm_vel = np.linalg.norm(vel)
+        spec_ang_momentum = np.cross(pos, vel)
+        K_vec = np.array([
+            [0],
+            [0],
+            [1]
+        ])  # i,j,k = <0,0,1>
+        line_nodes = np.cross(K_vec, spec_ang_momentum)
+        spec_energy = 0.5 * norm_vel**2 - grav_param / norm_pos
+        eccentricity = (spec_energy * pos) - (np.dot(pos, vel) * vel) / grav_param
+
+        if np.linalg.norm(eccentricity) != 0:
+            semi_major_axis = -grav_param / spec_energy
+        else:
+            # Parabolic orbit
+            semi_major_axis = float('inf')
+
+        inclination = np.acos(spec_ang_momentum[2, 0] / np.linalg.norm(spec_ang_momentum))
+
+        ascending_nodes = np.acos(line_nodes[0, 0] / np.linalg.norm(line_nodes))
+        if (line_nodes[1, 0] < 0):
+            ascending_nodes = 2 * np.pi - ascending_nodes
+
+        arg_periapsis = np.acos(
+            np.dot(line_nodes, eccentricity) / (np.linalg.norm(line_nodes) * np.linalg.norm(eccentricity)))
+        if (eccentricity[2, 0] < 0):
+            arg_periapsis = 2 * np.pi - arg_periapsis
+
+        true_anomaly = np.acos(np.dot(eccentricity, pos) / (np.linalg.norm(eccentricity) * np.linalg.norm(pos)))
+        if (np.dot(pos, vel) < 0):
+            true_anomaly = 2 * np.pi - true_anomaly
+
+        # ---Special cases---
+        # Elliptical equatorial
+        # Circular inclined
+        # Circular equatorial
+
+        OE = [semi_major_axis, eccentricity, true_anomaly, ascending_nodes, arg_periapsis, inclination]
+        return OE
+
+    @staticmethod
+    def OE2RV(orbital_elements, grav_param):
+        semi_major_axis = orbital_elements['semi_major_axis']
+        eccentricity = orbital_elements['eccentricity']
+        true_anomaly = orbital_elements['true_anomaly']
+        ascending_nodes = orbital_elements['ascending_nodes']
+        arg_periapsis = orbital_elements['arg_periapsis']
+        inclination = orbital_elements['inclination']
+
+        semi_latus_rectum = semi_major_axis * (1 - eccentricity**2)
+        # Defining position
+        pos_pqw = np.array([
+            [semi_latus_rectum * np.cos(true_anomaly) / (1 + eccentricity * np.cos(true_anomaly))],
+            [semi_latus_rectum * np.sin(true_anomaly) / (1 + eccentricity * np.cos(true_anomaly))],
+            [0]
+        ])
+        # pos edge cases
+        # Circular equatorial (RAAN = 0, arg_peri = 0, f = lambda true?)
+        # Circular inclined (arg_peri = 0 and f = u?)
+        # Defining velocity
+        vel_pqw = np.array([
+            [-np.sqrt(grav_param / semi_latus_rectum) * np.sin(true_anomaly)],
+            [np.sqrt(grav_param / semi_latus_rectum) * (eccentricity + np.cos(true_anomaly))],
+            [0]
+        ])
+        # vel edge cases
+        # elliptical equatorial (arg_peri = arg_peri_true)
