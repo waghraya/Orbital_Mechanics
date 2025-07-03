@@ -35,16 +35,16 @@ class Simulation:
         inclination = np.acos(spec_ang_momentum[2, 0] / np.linalg.norm(spec_ang_momentum))
 
         ascending_nodes = np.acos(line_nodes[0, 0] / np.linalg.norm(line_nodes))
-        if (line_nodes[1, 0] < 0):
+        if line_nodes[1, 0] < 0:
             ascending_nodes = 2 * np.pi - ascending_nodes
 
         arg_periapsis = np.acos(
             np.dot(line_nodes, eccentricity) / (np.linalg.norm(line_nodes) * np.linalg.norm(eccentricity)))
-        if (eccentricity[2, 0] < 0):
+        if eccentricity[2, 0] < 0:
             arg_periapsis = 2 * np.pi - arg_periapsis
 
         true_anomaly = np.acos(np.dot(eccentricity, pos) / (np.linalg.norm(eccentricity) * np.linalg.norm(pos)))
-        if (np.dot(pos, vel) < 0):
+        if np.dot(pos, vel) < 0:
             true_anomaly = 2 * np.pi - true_anomaly
 
         # ---Special cases---
@@ -52,17 +52,22 @@ class Simulation:
         # Circular inclined
         # Circular equatorial
 
-        OE = [semi_major_axis, eccentricity, true_anomaly, ascending_nodes, arg_periapsis, inclination]
-        return OE
+        orbitalElements = {'Semi major axis':semi_major_axis,
+              'Eccentricity':eccentricity,
+              'True anomaly':true_anomaly,
+              'RAAN':ascending_nodes,
+              'Argument of Periapsis':arg_periapsis,
+              'Inclination':inclination}
+        return orbitalElements
 
     @staticmethod
-    def OE2RV(orbital_elements, grav_param):
-        semi_major_axis = orbital_elements['semi_major_axis']
-        eccentricity = orbital_elements['eccentricity']
-        true_anomaly = orbital_elements['true_anomaly']
-        ascending_nodes = orbital_elements['ascending_nodes']
-        arg_periapsis = orbital_elements['arg_periapsis']
-        inclination = orbital_elements['inclination']
+    def OE2RV(orbitalElements, grav_param):
+        semi_major_axis = orbitalElements['Semi Major Axis']
+        eccentricity = orbitalElements['Eccentricity']
+        true_anomaly = orbitalElements['True Anomaly']
+        ascending_nodes = orbitalElements['RAAN']
+        arg_periapsis = orbitalElements['Argument of Periapsis']
+        inclination = orbitalElements['Inclination']
 
         semi_latus_rectum = semi_major_axis * (1 - eccentricity**2)
         # Defining position
@@ -82,3 +87,4 @@ class Simulation:
         ])
         # vel edge cases
         # elliptical equatorial (arg_peri = arg_peri_true)
+        return [pos_pqw, vel_pqw]

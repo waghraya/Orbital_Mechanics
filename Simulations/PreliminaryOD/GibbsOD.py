@@ -48,3 +48,7 @@ class GibbsOD(PreliminaryOD):
         vel1_ECI        = (Lg/norm_pos1)*B + Lg*S
         vel2_ECI        = (Lg/norm_pos2)*B + Lg*S
         vel3_ECI        = (Lg/norm_pos3)*B + Lg*S
+
+        OE1 = self.RV2OE(self.pos1_ECI, vel1_ECI,grav_param_Earth)
+        OE2 = self.RV2OE(self.pos2_ECI, vel2_ECI,grav_param_Earth)
+        OE3 = self.RV2OE(self.pos3_ECI, vel3_ECI,grav_param_Earth)

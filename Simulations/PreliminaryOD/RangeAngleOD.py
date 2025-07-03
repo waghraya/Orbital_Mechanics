@@ -89,53 +89,45 @@ class RangeAngleOD(PreliminaryOD):
         vel1_ECI                = sat_range_rate_SEZ_ECI + np.cross(omega_Earth.T,pos1_ECI.T).T
 
     #---------------------[r1,v1 -> OE1]----------------------------
-        K = np.array([[0],[0],[1]])
-        spec_ang_momentum           = np.cross(pos1_ECI.T,vel1_ECI.T).T
-        spec_ang_momentum_unit      = spec_ang_momentum/np.linalg.norm(spec_ang_momentum)
-        pos1_ECI_unit                = pos1_ECI/np.linalg.norm(pos1_ECI)
-        spec_energy                 = ((np.linalg.norm(vel1_ECI)**2)/2) - grav_param_Earth/(np.linalg.norm(pos1_ECI))
-        line_nodes                  = np.cross(K.T,spec_ang_momentum_unit.T).T/(np.linalg.norm(np.cross(K.T,spec_ang_momentum_unit.T).T))
-        eccentricity                = (np.cross(vel1_ECI.T,spec_ang_momentum.T).T/grav_param_Earth)-pos1_ECI_unit
-        eccentricity_unit           = eccentricity/np.linalg.norm(eccentricity)
-        semi_major_axis             = -grav_param_Earth/(2*spec_energy)
-        inclination                 = float(np.acos(line_nodes.T@eccentricity_unit))
+        orbitalElements_1 = self.RV2OE(pos1_ECI, vel1_ECI, grav_param_Earth)
+        eccentricity = orbitalElements_1['Eccentricity']
+        semi_major_axis = orbitalElements_1['Semi Major Axis']
+        true_anomaly_1 = orbitalElements_1['True Anomaly']
+        RAAN_1 = orbitalElements_1['RAAN']
+        arg_periapsis_1 = orbitalElements_1['Argument of Periapsis']
+        inclination = orbitalElements_1['Inclination']
 
-        # checking domain for omega and correcting
-        if eccentricity_unit.T@K >= 0:
-            arg_periapsis = float(np.acos(line_nodes.T@eccentricity_unit))
-        else:
-            arg_periapsis = float(2*np.pi - np.acos(line_nodes.T@eccentricity_unit))
-        # atan2 autochecks quadrant
-        RAAN: float = float(np.atan2(line_nodes[1],line_nodes[0]))
-        # checking domain for f and correcting
-        if pos1_ECI.T@vel1_ECI >= 0:
-            true_anomaly_1 = np.acos(eccentricity_unit.T@pos1_ECI_unit)
-        else:
-            true_anomaly_1 = 2*np.pi - np.acos(eccentricity_unit.T@pos1_ECI_unit)
         E_anomaly_1 = 2*np.atan(np.tan(true_anomaly_1/2)*np.sqrt((1-np.linalg.norm(eccentricity))/(1+np.linalg.norm(eccentricity))))
         # Kepler's Equation
         M_anomaly_1 = E_anomaly_1 - np.linalg.norm(eccentricity)*np.sin(E_anomaly_1)
         mean_motion = np.sqrt(grav_param_Earth/semi_major_axis**3)
         eccentricity_norm = np.linalg.norm(eccentricity)
         # Convert r1,v1 to PQW
-        pos1_PQW = E2P(pos1_ECI,RAAN,arg_periapsis,inclination)
-        vel1_PQW = E2P(vel1_ECI,RAAN,arg_periapsis,inclination)
+        pos1_PQW = E2P(pos1_ECI,RAAN_1,arg_periapsis_1,inclination)
+        vel1_PQW = E2P(vel1_ECI,RAAN_1,arg_periapsis_1,inclination)
 
             #----------------------[OE1 -> OE2]-----------------------------
+        # add perturbations for Omega and omega
+        RAAN_2 = RAAN_1 # temporary
+        arg_periapsis_2 = arg_periapsis_1 # temporary
 
         M_anomaly_2 = M_anomaly_1 + mean_motion*self.time_of_flight
 
         # Newton-Raphson method used to solve for E2
         E_anomaly_2 = NR(M_anomaly_2,eccentricity_norm)
         true_anomaly_2 = 2 * np.atan(np.tan(E_anomaly_2/2) * np.sqrt((1 + np.linalg.norm(eccentricity)) / (1 - np.linalg.norm(eccentricity))))
+        orbitalElements_2 = {
+              'Eccentricity': eccentricity,
+              'Semi Major Axis': semi_major_axis,
+              'True Anomaly': true_anomaly_2,
+              'RAAN': RAAN_2,
+              'Argument of Periapsis': arg_periapsis_2,
+              'Inclination': inclination}
             #---------------------[OE2 -> r2,v2]----------------------------
-        pos2_norm = semi_major_axis*(1-eccentricity_norm**2)/(1+eccentricity_norm*np.cos(true_anomaly_2))
-        # Final r and v determined in PQW frame
-        pos2_PQW = pos2_norm*np.array([[float(np.cos(true_anomaly_2))],[float(np.sin(true_anomaly_2))],[0]])
-        vel2_PQW = np.sqrt(grav_param_Earth/(semi_major_axis*(1-eccentricity_norm**2)))*np.array([[float(-np.sin(true_anomaly_2))],[eccentricity_norm+float(np.cos(true_anomaly_2))],[0]])
+        [pos2_PQW, vel2_PQW] = self.OE2RV(orbitalElements_2,grav_param_Earth)
         # Final r and v converted from PQW to ECI frame
-        pos2_ECI = P2E(pos2_PQW,RAAN,arg_periapsis,inclination)
-        vel2_ECI = P2E(vel2_PQW,RAAN,arg_periapsis,inclination)
+        pos2_ECI = P2E(pos2_PQW,RAAN_2,arg_periapsis_2,inclination)
+        vel2_ECI = P2E(vel2_PQW,RAAN_2,arg_periapsis_2,inclination)
         pos_vec = np.array([pos1_PQW,pos2_PQW])
         vel_vec = np.array([vel1_PQW,vel2_PQW])
 
