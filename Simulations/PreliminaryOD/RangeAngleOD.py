@@ -2,9 +2,9 @@ import numpy as np
 import configparser
 from utils.constants import omega_Earth, grav_param_Earth, radius_Earth
 from utils.Newton_Raphson import Newton_Raphson as NR
-from utils.SEZ2ECI import SEZ2ECI as S2E
-from utils.PQW2ECI import PQW2ECI as P2E
-from utils.PQW2ECI import ECI2PQW as E2P
+from utils.Rotations.SEZ2ECI import SEZ2ECI as S2E
+from utils.Rotations.PQW2ECI import PQW2ECI as P2E
+from utils.Rotations.PQW2ECI import ECI2PQW as E2P
 from .base import PreliminaryOD
 
 """
@@ -116,13 +116,12 @@ class RangeAngleOD(PreliminaryOD):
         # Newton-Raphson method used to solve for E2
         E_anomaly_2 = NR(M_anomaly_2,eccentricity_norm)
         true_anomaly_2 = 2 * np.atan(np.tan(E_anomaly_2/2) * np.sqrt((1 + np.linalg.norm(eccentricity)) / (1 - np.linalg.norm(eccentricity))))
-        orbitalElements_2 = {
-              'Eccentricity': eccentricity,
-              'Semi Major Axis': semi_major_axis,
-              'True Anomaly': true_anomaly_2,
-              'RAAN': RAAN_2,
-              'Argument of Periapsis': arg_periapsis_2,
-              'Inclination': inclination}
+        orbitalElements_2 = {'Eccentricity': eccentricity,
+                            'Semi Major Axis': semi_major_axis,
+                            'True Anomaly': true_anomaly_2,
+                            'RAAN': RAAN_2,
+                            'Argument of Periapsis': arg_periapsis_2,
+                            'Inclination': inclination}
             #---------------------[OE2 -> r2,v2]----------------------------
         [pos2_PQW, vel2_PQW] = self.OE2RV(orbitalElements_2,grav_param_Earth)
         # Final r and v converted from PQW to ECI frame
@@ -132,7 +131,7 @@ class RangeAngleOD(PreliminaryOD):
         vel_vec = np.array([vel1_PQW,vel2_PQW])
 
         '''
-                    #--------------------[J2 Perurbation]---------------------------
+                    #--------------------[J2 Perturbation]---------------------------
                 # Change of RAAN
                 Ohm_dot = -( ((3*n*J2)/(2*( 1- e**2)**2)) * (rE/a)**2 * np.cos(i))
                 Ohm = Ohm + Ohm_dot*tof
