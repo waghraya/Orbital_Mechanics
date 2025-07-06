@@ -21,11 +21,10 @@ Inputs:
 """
 
 class RangeAngleOD(PreliminaryOD):
-    def __init__(self, sat_name, time_of_flight, sat_loc, ground_station_loc, sim_type):
+    def __init__(self, sat_name, sat_loc, ground_station_loc, sim_type):
         self.sim_type           = sim_type
         self.sat_name           = sat_name
         super().__init__(sat_name, sim_type)
-        self.time_of_flight     = time_of_flight
         self.phi                = ground_station_loc['phi']
         self.lam                = ground_station_loc['lam']
         self.altitude           = ground_station_loc['altitude']
@@ -46,7 +45,6 @@ class RangeAngleOD(PreliminaryOD):
         
             # ---------take inputs-----------
         sat_name                                = config['Satellite']['sat_name']
-        time_of_flight                          = config['Scenario']['time_of_flight']
         sim_type                                = config['Scenario']['sim_type']
         ground_station_loc['phi']               = config["Ground Station"]["phi"]
         ground_station_loc['lam']               = config["Ground Station"]["lam"]
@@ -59,7 +57,7 @@ class RangeAngleOD(PreliminaryOD):
         sat_loc['sig_rate']                     = config["Satellite"]["sig_rate"]
         sat_loc['beta_rate']                    = config["Satellite"]["beta_rate"]
 
-        return cls(sat_name,time_of_flight,sat_loc,ground_station_loc,sim_type)
+        return cls(sat_name,sat_loc,ground_station_loc,sim_type)
     
     
     def run(self):
