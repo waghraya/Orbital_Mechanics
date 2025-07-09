@@ -2,9 +2,6 @@ import numpy as np
 import ast
 import configparser
 from utils.constants import grav_param_Earth
-from utils.SEZ2ECI import SEZ2ECI as S2E
-from utils.PQW2ECI import PQW2ECI as P2E
-from utils.PQW2ECI import ECI2PQW as E2P
 from .base import PreliminaryOD
 class GibbsOD(PreliminaryOD):
     def __init__(self,sat_name,sim_type,pos1_ECI,pos2_ECI,pos3_ECI):
@@ -49,6 +46,7 @@ class GibbsOD(PreliminaryOD):
         vel2_ECI        = (Lg/norm_pos2)*B + Lg*S
         vel3_ECI        = (Lg/norm_pos3)*B + Lg*S
 
-        OE1 = self.RV2OE(self.pos1_ECI, vel1_ECI,grav_param_Earth)
-        OE2 = self.RV2OE(self.pos2_ECI, vel2_ECI,grav_param_Earth)
-        OE3 = self.RV2OE(self.pos3_ECI, vel3_ECI,grav_param_Earth)
+        orbitalElements = self.RV2OE(self.pos1_ECI, vel1_ECI,grav_param_Earth)
+        orbitalPeriod = 2*np.pi*np.sqrt(orbitalElements['Semi major axis']**3/grav_param_Earth)
+
+        return orbitalElements, orbitalPeriod

@@ -1,10 +1,7 @@
 import numpy as np
 import configparser
 from utils.constants import omega_Earth, grav_param_Earth, radius_Earth
-from utils.Newton_Raphson import Newton_Raphson as NR
 from utils.Rotations.SEZ2ECI import SEZ2ECI as S2E
-from utils.Rotations.PQW2ECI import PQW2ECI as P2E
-from utils.Rotations.PQW2ECI import ECI2PQW as E2P
 from .base import PreliminaryOD
 
 """
@@ -87,53 +84,17 @@ class RangeAngleOD(PreliminaryOD):
         vel1_ECI                = sat_range_rate_SEZ_ECI + np.cross(omega_Earth.T,pos1_ECI.T).T
 
     #---------------------[r1,v1 -> OE1]----------------------------
-        orbitalElements_1 = self.RV2OE(pos1_ECI, vel1_ECI, grav_param_Earth)
-        eccentricity = orbitalElements_1['Eccentricity']
-        semi_major_axis = orbitalElements_1['Semi Major Axis']
-        true_anomaly_1 = orbitalElements_1['True Anomaly']
-        RAAN_1 = orbitalElements_1['RAAN']
-        arg_periapsis_1 = orbitalElements_1['Argument of Periapsis']
-        inclination = orbitalElements_1['Inclination']
+        orbitalElements = self.RV2OE(pos1_ECI, vel1_ECI, grav_param_Earth)
+        eccentricity = orbitalElements['Eccentricity']
+        semi_major_axis = orbitalElements['Semi Major Axis']
+        true_anomaly = orbitalElements['True Anomaly']
+        RAAN = orbitalElements['RAAN']
+        arg_periapsis = orbitalElements['Argument of Periapsis']
+        inclination = orbitalElements['Inclination']
 
-        E_anomaly_1 = 2*np.atan(np.tan(true_anomaly_1/2)*np.sqrt((1-np.linalg.norm(eccentricity))/(1+np.linalg.norm(eccentricity))))
+        E_anomaly = 2*np.atan(np.tan(true_anomaly/2)*np.sqrt((1-np.linalg.norm(eccentricity))/(1+np.linalg.norm(eccentricity))))
         # Kepler's Equation
-        M_anomaly_1 = E_anomaly_1 - np.linalg.norm(eccentricity)*np.sin(E_anomaly_1)
+        M_anomaly = E_anomaly - np.linalg.norm(eccentricity)*np.sin(E_anomaly)
         mean_motion = np.sqrt(grav_param_Earth/semi_major_axis**3)
-        eccentricity_norm = np.linalg.norm(eccentricity)
-        # Convert r1,v1 to PQW
-        pos1_PQW = E2P(pos1_ECI,RAAN_1,arg_periapsis_1,inclination)
-        vel1_PQW = E2P(vel1_ECI,RAAN_1,arg_periapsis_1,inclination)
-
-            #----------------------[OE1 -> OE2]-----------------------------
-        # add perturbations for Omega and omega
-        RAAN_2 = RAAN_1 # temporary
-        arg_periapsis_2 = arg_periapsis_1 # temporary
-
-        M_anomaly_2 = M_anomaly_1 + mean_motion*self.time_of_flight
-
-        # Newton-Raphson method used to solve for E2
-        E_anomaly_2 = NR(M_anomaly_2,eccentricity_norm)
-        true_anomaly_2 = 2 * np.atan(np.tan(E_anomaly_2/2) * np.sqrt((1 + np.linalg.norm(eccentricity)) / (1 - np.linalg.norm(eccentricity))))
-        orbitalElements_2 = {'Eccentricity': eccentricity,
-                            'Semi Major Axis': semi_major_axis,
-                            'True Anomaly': true_anomaly_2,
-                            'RAAN': RAAN_2,
-                            'Argument of Periapsis': arg_periapsis_2,
-                            'Inclination': inclination}
-            #---------------------[OE2 -> r2,v2]----------------------------
-        [pos2_PQW, vel2_PQW] = self.OE2RV(orbitalElements_2,grav_param_Earth)
-        # Final r and v converted from PQW to ECI frame
-        pos2_ECI = P2E(pos2_PQW,RAAN_2,arg_periapsis_2,inclination)
-        vel2_ECI = P2E(vel2_PQW,RAAN_2,arg_periapsis_2,inclination)
-        pos_vec = np.array([pos1_PQW,pos2_PQW])
-        vel_vec = np.array([vel1_PQW,vel2_PQW])
-
-        '''
-                    #--------------------[J2 Perturbation]---------------------------
-                # Change of RAAN
-                Ohm_dot = -( ((3*n*J2)/(2*( 1- e**2)**2)) * (rE/a)**2 * np.cos(i))
-                Ohm = Ohm + Ohm_dot*tof
-                # Change of argument of periapsis
-                omega_dot = (3*n*J2)/(4*(1-e**2)**2)*((rE/a)**2)*(5*(np.cos(i)**2) - 1)
-                omega = omega + omega_dot*tof
-        '''
+        orbitalPeriod = 2*np.pi/mean_motion
+        return orbitalElements, orbitalPeriod
