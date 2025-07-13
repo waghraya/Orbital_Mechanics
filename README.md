@@ -8,6 +8,8 @@ Within the near future, propagating the states of the orbit will be used to gene
 
 Above is the base of how the program function where further updates will improve the fidelity by introducing different perturbations (J2, Solar Radiation Pressure, and endo-atmospheric drag). As well as state-estimation tools like an Extended Kalman Filter (EKF).
 
+A full roadmap for the project is under the https://github.com/waghraya/Orbital_Mechanics/wiki roadmap page.
+
 
 ----- Steps to run -----
 
