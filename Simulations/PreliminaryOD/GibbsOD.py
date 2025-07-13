@@ -47,6 +47,6 @@ class GibbsOD(PreliminaryOD):
         vel3_ECI        = (Lg/norm_pos3)*B + Lg*S
 
         orbitalElements = self.RV2OE(self.pos1_ECI, vel1_ECI,grav_param_Earth)
-        orbitalPeriod = 2*np.pi*np.sqrt(orbitalElements['Semi major axis']**3/grav_param_Earth)
+        orbitalPeriod = 2*np.pi*np.sqrt(orbitalElements['Semi Major Axis']**3/grav_param_Earth)
 
         return orbitalElements, orbitalPeriod
