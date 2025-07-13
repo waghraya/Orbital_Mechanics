@@ -15,6 +15,10 @@ def plotFlatOrbit(orbitalElements):
     theta = np.linspace(0,2*np.pi,500)
     semi_major_axis = orbitalElements['Semi Major Axis']
     eccentricity = np.linalg.norm(orbitalElements['Eccentricity'])
+    true_anomaly = orbitalElements(['True Anomaly'])
+    current_radial_pos = semi_major_axis * (1 - eccentricity ** 2) / (1 + eccentricity * np.cos(true_anomaly))
+    current_x_pos = current_radial_pos*np.cos(true_anomaly)
+    current_y_pos = current_radial_pos*np.sin(true_anomaly)
     radial_pos = (semi_major_axis * (1 - eccentricity ** 2)) / (1 + eccentricity * np.cos(theta))
 
     # convert from radial to cartesian
@@ -23,16 +27,17 @@ def plotFlatOrbit(orbitalElements):
 
     # Plotting
     mplot.figure(figsize=(6, 6))
-    mplot.plot(x_pos, y_pos, label="Orbit Path")
+    mplot.plot(x_pos, y_pos, label='Orbit Path')
     mplot.plot([0], [0], 'bo', label='Earth')
     mplot.plot([semi_major_axis*(1-eccentricity)], [0], 'ro', label='Periapsis')
     mplot.plot([-semi_major_axis*(1+eccentricity)], [0], 'ro', label='Apoapsis')
+    mplot.plot([current_x_pos], [current_y_pos], 'ko', label='Current Position')
     
     # Plot settings
     mplot.axis('equal')
-    mplot.title("2D Orbital Plot (Orbital Plane)")
-    mplot.xlabel("x (km)")
-    mplot.ylabel("y (km)")
+    mplot.title('2D Orbital Plot (Orbital Plane)')
+    mplot.xlabel('x (km)')
+    mplot.ylabel('y (km)')
     mplot.grid(True)
     mplot.legend()
     mplot.show()
