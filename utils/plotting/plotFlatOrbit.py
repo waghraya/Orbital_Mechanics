@@ -8,7 +8,7 @@ Created on Sun Jul 13 12:16:25 2025
 Dev notes:
     Plotting orbit based off given OrbitalElements in the PQW frame
 """
-import matplotlib as mplot
+import matplotlib.pyplot as mplot
 import numpy as np
 
 def plotFlatOrbit(orbitalElements):
