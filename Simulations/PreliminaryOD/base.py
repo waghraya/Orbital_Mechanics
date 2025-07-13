@@ -10,3 +10,5 @@ class PreliminaryOD(Simulation):
     def __init__(self, sat_name, sim_type):
         super().__init__('none','PreliminaryOD')
         self.sim_type = sim_type
+    def Propagate(self):
+        [] =
