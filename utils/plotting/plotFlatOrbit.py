@@ -14,7 +14,7 @@ import numpy as np
 def plotFlatOrbit(orbitalElements):
     theta = np.linspace(0,2*np.pi,500)
     semi_major_axis = orbitalElements['Semi Major Axis']
-    eccentricity = np.linalg.norm(orbitalElements['Eccentricity'])
+    eccentricity = orbitalElements['Eccentricity']
     true_anomaly = orbitalElements(['True Anomaly'])
     current_radial_pos = semi_major_axis * (1 - eccentricity ** 2) / (1 + eccentricity * np.cos(true_anomaly))
     current_x_pos = current_radial_pos*np.cos(true_anomaly)
@@ -41,3 +41,5 @@ def plotFlatOrbit(orbitalElements):
     mplot.grid(True)
     mplot.legend()
     mplot.show()
+OE = {'Semi Major Axis': 7000, 'Eccentricity': 0.1}
+plotFlatOrbit(OE)
