@@ -41,5 +41,3 @@ def plotFlatOrbit(orbitalElements):
     mplot.grid(True)
     mplot.legend()
     mplot.show()
-OE = {'Semi Major Axis': 7000, 'Eccentricity': 0.1}
-plotFlatOrbit(OE)
