@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import configparser
 from utils.constants import omega_Earth, grav_param_Earth, radius_Earth
 from utils.Rotations.SEZ2ECI import SEZ2ECI as S2E
@@ -22,15 +23,15 @@ class RangeAngleOD(PreliminaryOD):
         self.sim_type           = sim_type
         self.sat_name           = sat_name
         super().__init__(sat_name, sim_type)
-        self.phi                = ground_station_loc['phi']
-        self.lam                = ground_station_loc['lam']
-        self.altitude           = ground_station_loc['altitude']
-        self.sat_range          = sat_loc['sat_range']
-        self.sig                = sat_loc['sig']
-        self.beta               = sat_loc['beta']
-        self.sat_range_rate     = sat_loc['sat_range_rate']
-        self.sig_rate           = sat_loc['sig_rate']
-        self.beta_rate          = sat_loc['beta_rate']
+        self.phi                = float(ground_station_loc['phi'])
+        self.lam                = float(ground_station_loc['lam'])
+        self.altitude           = float(ground_station_loc['altitude'])
+        self.sat_range          = float(sat_loc['sat_range'])
+        self.sigma              = float(sat_loc['sigma'])
+        self.beta               = float(sat_loc['beta'])
+        self.sat_range_rate     = float(sat_loc['sat_range_rate'])
+        self.sigma_rate         = float(sat_loc['sigma_rate'])
+        self.beta_rate          = float(sat_loc['beta_rate'])
     
     @classmethod
     def import_config(cls, config_path='config/RangeAngleOD_config.ini'):
@@ -48,10 +49,10 @@ class RangeAngleOD(PreliminaryOD):
         ground_station_loc['altitude']          = config["Ground Station"]["altitude"]
         
         sat_loc['sat_range']                    = config["Satellite"]["sat_range"]
-        sat_loc['sig']                          = config["Satellite"]["sig"]
+        sat_loc['sigma']                        = config["Satellite"]["sigma"]
         sat_loc['beta']                         = config["Satellite"]["beta"]
         sat_loc['sat_range_rate']               = config["Satellite"]["sat_range_rate"]
-        sat_loc['sig_rate']                     = config["Satellite"]["sig_rate"]
+        sat_loc['sigma_rate']                   = config["Satellite"]["sigma_rate"]
         sat_loc['beta_rate']                    = config["Satellite"]["beta_rate"]
 
         return cls(sat_name,sat_loc,ground_station_loc,sim_type)
@@ -63,19 +64,19 @@ class RangeAngleOD(PreliminaryOD):
         
     #---------------------[finding r1,v1]---------------------------
         sat_range_SEZ           = self.sat_range*np.array([
-                                    [-np.cos(self.sig)*np.cos(self.beta)],
-                                    [np.cos(self.sig)*np.sin(self.beta)],
-                                    [np.sin(self.sig)]
+                                    [-np.cos(self.sigma)*np.cos(self.beta)],
+                                    [np.cos(self.sigma)*np.sin(self.beta)],
+                                    [np.sin(self.sigma)]
                                     ])
         sat_range_ECI           = S2E(sat_range_SEZ,self.lam,self.phi)
         sat_range_rate_SEZ_SEZ  = self.sat_range_rate*np.array([
-                                    [-np.cos(self.sig)*np.cos(self.beta)],
-                                    [np.cos(self.sig)*np.sin(self.beta)],
-                                    [np.sin(self.sig)]
+                                    [-np.cos(self.sigma)*np.cos(self.beta)],
+                                    [np.cos(self.sigma)*np.sin(self.beta)],
+                                    [np.sin(self.sigma)]
                                     ]) + self.sat_range*np.array([
-                                        [(self.sig_rate*(np.sin(self.sig)*np.cos(self.beta)))+(self.beta_rate*np.cos(self.sig)*np.sin(self.beta))],
-                                        [(-self.sig_rate*np.sin(self.sig)*(np.sin(self.beta)))+(self.beta_rate*np.cos(self.sig)*np.cos(self.beta))],
-                                        [(self.sig_rate*np.cos(self.sig))]
+                                        [(self.sigma_rate*(np.sin(self.sigma)*np.cos(self.beta)))+(self.beta_rate*np.cos(self.sigma)*np.sin(self.beta))],
+                                        [(-self.sigma_rate*np.sin(self.sigma)*(np.sin(self.beta)))+(self.beta_rate*np.cos(self.sigma)*np.cos(self.beta))],
+                                        [(self.sigma_rate*np.cos(self.sigma))]
                                     ])
         sat_range_rate_SEZ_ECI  = S2E(sat_range_rate_SEZ_SEZ,self.lam,self.phi)
         site_pos_SEZ            = np.array([[0],[0],[radius_Earth]])
@@ -84,6 +85,7 @@ class RangeAngleOD(PreliminaryOD):
         vel1_ECI                = sat_range_rate_SEZ_ECI + np.cross(omega_Earth.T,pos1_ECI.T).T
 
     #---------------------[r1,v1 -> OE1]----------------------------
+
         orbitalElements = self.RV2OE(pos1_ECI, vel1_ECI, grav_param_Earth)
         eccentricity = orbitalElements['Eccentricity']
         semi_major_axis = orbitalElements['Semi Major Axis']
@@ -91,8 +93,8 @@ class RangeAngleOD(PreliminaryOD):
         RAAN = orbitalElements['RAAN']
         arg_periapsis = orbitalElements['Argument of Periapsis']
         inclination = orbitalElements['Inclination']
-
-        E_anomaly = 2*np.atan(np.tan(true_anomaly/2)*np.sqrt((1-np.linalg.norm(eccentricity))/(1+np.linalg.norm(eccentricity))))
+        # CHECK SQRT'S
+        E_anomaly = 2*math.atan(np.tan(true_anomaly/2)*np.sqrt((1-np.linalg.norm(eccentricity))/(1+np.linalg.norm(eccentricity))))
         # Kepler's Equation
         M_anomaly = E_anomaly - np.linalg.norm(eccentricity)*np.sin(E_anomaly)
         mean_motion = np.sqrt(grav_param_Earth/semi_major_axis**3)

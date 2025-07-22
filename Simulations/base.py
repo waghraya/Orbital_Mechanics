@@ -5,6 +5,7 @@ Created on Sun Jun 22 14:20:25 2025
 @author: waghr
 """
 import numpy as np
+import math
 class Simulation:
     def __init__(self, sat_name, sim_type):
         self.sim_type = sim_type
@@ -16,35 +17,32 @@ class Simulation:
     def RV2OE(pos, vel, grav_param):
         norm_pos = np.linalg.norm(pos)
         norm_vel = np.linalg.norm(vel)
-        spec_ang_momentum = np.cross(pos, vel)
+        spec_ang_momentum = np.cross(pos.T, vel.T).T
         K_vec = np.array([
             [0],
             [0],
             [1]
         ])  # i,j,k = <0,0,1>
-        line_nodes = np.cross(K_vec, spec_ang_momentum)
+        line_nodes = np.cross(K_vec.T, spec_ang_momentum.T).T
         spec_energy = 0.5 * norm_vel**2 - grav_param / norm_pos
-        eccentricity = (spec_energy * pos) - (np.dot(pos, vel) * vel) / grav_param
-
+        eccentricity = (spec_energy * pos) - (float(pos.T @ vel) * vel) / grav_param
         if np.linalg.norm(eccentricity) != 0:
             semi_major_axis = -grav_param / spec_energy
         else:
             # Parabolic orbit
             semi_major_axis = float('inf')
-
-        inclination = np.acos(spec_ang_momentum[2, 0] / np.linalg.norm(spec_ang_momentum))
-
-        ascending_nodes = np.acos(line_nodes[0, 0] / np.linalg.norm(line_nodes))
+        inclination = math.acos(spec_ang_momentum[2, 0] / np.linalg.norm(spec_ang_momentum))
+        ascending_nodes = math.acos(line_nodes[0, 0] / np.linalg.norm(line_nodes))
         if line_nodes[1, 0] < 0:
             ascending_nodes = 2 * np.pi - ascending_nodes
 
-        arg_periapsis = np.acos(
-            np.dot(line_nodes, eccentricity) / (np.linalg.norm(line_nodes) * np.linalg.norm(eccentricity)))
+        arg_periapsis = math.acos(
+            float(line_nodes.T @ eccentricity) / (np.linalg.norm(line_nodes) * np.linalg.norm(eccentricity)))
         if eccentricity[2, 0] < 0:
             arg_periapsis = 2 * np.pi - arg_periapsis
 
-        true_anomaly = np.acos(np.dot(eccentricity, pos) / (np.linalg.norm(eccentricity) * np.linalg.norm(pos)))
-        if np.dot(pos, vel) < 0:
+        true_anomaly = math.acos(float(eccentricity.T @ pos) / (np.linalg.norm(eccentricity) * np.linalg.norm(pos)))
+        if float(pos.T @ vel) < 0:
             true_anomaly = 2 * np.pi - true_anomaly
 
         # ---Special cases---
@@ -52,9 +50,9 @@ class Simulation:
         # Circular inclined
         # Circular equatorial
 
-        orbitalElements = {'Semi major axis':semi_major_axis,
+        orbitalElements = {'Semi Major Axis':semi_major_axis,
               'Eccentricity':eccentricity,
-              'True anomaly':true_anomaly,
+              'True Anomaly':true_anomaly,
               'RAAN':ascending_nodes,
               'Argument of Periapsis':arg_periapsis,
               'Inclination':inclination}
