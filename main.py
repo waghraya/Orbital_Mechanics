@@ -9,6 +9,7 @@ Created on Sun Jun 15 23:21:34 2025
     Entry point into running scripts
 """
 import sys
+import traceback
 from Simulations.PreliminaryOD.GibbsOD import GibbsOD
 from Simulations.PreliminaryOD.RangeAngleOD import RangeAngleOD
 from Simulations.PreliminaryOD.GaussLambert import GaussLambert
@@ -34,6 +35,7 @@ def main():
         simulation = getSim(simName)
         simulation.run()
     except Exception as e:
+        traceback.print_exc()
         print(f"[ERROR] {e}")
         sys.exit(1)
 

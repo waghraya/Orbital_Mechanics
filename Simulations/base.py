@@ -25,7 +25,10 @@ class Simulation:
         ])  # i,j,k = <0,0,1>
         line_nodes = np.cross(K_vec.T, spec_ang_momentum.T).T
         spec_energy = 0.5 * norm_vel**2 - grav_param / norm_pos
-        eccentricity = (spec_energy * pos) - (float(pos.T @ vel) * vel) / grav_param
+        r = pos.flatten()
+        v = vel.flatten()
+        eccentricity = ((np.dot(v, v) - grav_param / np.linalg.norm(r)) * r - np.dot(r, v) * v) / grav_param
+        eccentricity = eccentricity.reshape((3, 1))
         if np.linalg.norm(eccentricity) != 0:
             semi_major_axis = -grav_param / spec_energy
         else:

@@ -14,8 +14,8 @@ import numpy as np
 def plotFlatOrbit(orbitalElements):
     theta = np.linspace(0,2*np.pi,500)
     semi_major_axis = orbitalElements['Semi Major Axis']
-    eccentricity = orbitalElements['Eccentricity']
-    true_anomaly = orbitalElements(['True Anomaly'])
+    eccentricity = np.linalg.norm(orbitalElements['Eccentricity'])
+    true_anomaly = orbitalElements['True Anomaly']
     current_radial_pos = semi_major_axis * (1 - eccentricity ** 2) / (1 + eccentricity * np.cos(true_anomaly))
     current_x_pos = current_radial_pos*np.cos(true_anomaly)
     current_y_pos = current_radial_pos*np.sin(true_anomaly)
@@ -32,6 +32,7 @@ def plotFlatOrbit(orbitalElements):
     mplot.plot([semi_major_axis*(1-eccentricity)], [0], 'ro', label='Periapsis')
     mplot.plot([-semi_major_axis*(1+eccentricity)], [0], 'ro', label='Apoapsis')
     mplot.plot([current_x_pos], [current_y_pos], 'ko', label='Current Position')
+    mplot.plot([current_x_pos, 0], [current_y_pos, 0], linestyle='--',color='k')
     
     # Plot settings
     mplot.axis('equal')
