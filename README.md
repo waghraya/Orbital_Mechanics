@@ -13,4 +13,23 @@ A full roadmap for the project is under the [wiki](url) roadmap page.
 
 ----- Steps to run -----
 
-THE REPO IS CURRENTLY NON-FUNCTIONAL AND IN THE DEVELOPMENT STAGE. ONCE FUNCTIONAL STEPS TO USE IT WILL BE UNDER THIS SECTION.
+Determine the simulation you want to run:
+
+  -PreliminaryOD:
+  
+    -Ground-based range and angle measurements: **'RangeAngleOD'**
+    
+    -Gibbs method: **'GibbsOD'**
+    
+    -Gauss-Lambert method: **'GaussLambert'**
+    
+Edit the associated configuration **'.ini'** file under the **'config'** folder.
+
+Use the associated strings above and run in the format below while in your local clone of the repository:
+
+**'python main.py <sim_type>'** where **<sim_type>** is the associated string.
+
+Example plotFlatOrbit output:
+
+<img width="1795" height="884" alt="image" src="https://github.com/user-attachments/assets/8e1f85de-8984-4379-9ecb-5e1c09520f9d" />
+
