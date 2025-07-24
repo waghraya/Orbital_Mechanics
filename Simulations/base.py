@@ -53,6 +53,7 @@ class Simulation:
         # Circular inclined
         # Circular equatorial
 
+        eccentricity = np.linalg.norm(eccentricity)
         orbitalElements = {'Semi Major Axis':semi_major_axis,
               'Eccentricity':eccentricity,
               'True Anomaly':true_anomaly,
