@@ -27,7 +27,7 @@ Edit the associated configuration **'.ini'** file under the **'config'** folder.
 
 Use the associated strings above and run in the format below while in your local clone of the repository:
 
-**'python main.py <sim_type>'** where **<sim_type>** is the associated string.
+    **'python main.py <sim_type>'** where **<sim_type>** is the associated string.
 
 Example plotFlatOrbit output:
 
