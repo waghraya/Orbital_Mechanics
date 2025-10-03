@@ -8,6 +8,7 @@ from Simulations.base import Simulation
 
 class OrbitManeuver(Simulation):
     def __init__(self, sim_type):
+        super().__init__(sim_type)
         self.sim_type = sim_type
     def getSimType():
         sim_type = 'OrbitManeuver'
